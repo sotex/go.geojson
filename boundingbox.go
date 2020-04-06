@@ -52,42 +52,42 @@ func (g *Geometry) GetBoundingBox() (min, max [2]float64, ok bool) {
 
 	switch g.Type {
 	case GeometryPoint:
-		min[0] = g.Point[0]
-		min[1] = g.Point[1]
+		min[0] = g.Point.X
+		min[1] = g.Point.Y
 		max[0] = min[0]
 		max[1] = min[1]
 	case GeometryMultiPoint:
 		for i := 0; i < len(g.MultiPoint); i++ {
-			min[0] = math.Min(min[0], g.MultiPoint[i][0])
-			min[1] = math.Min(min[1], g.MultiPoint[i][1])
-			max[0] = math.Max(max[0], g.MultiPoint[i][0])
-			max[1] = math.Max(max[1], g.MultiPoint[i][1])
+			min[0] = math.Min(min[0], g.MultiPoint[i].X)
+			min[1] = math.Min(min[1], g.MultiPoint[i].Y)
+			max[0] = math.Max(max[0], g.MultiPoint[i].X)
+			max[1] = math.Max(max[1], g.MultiPoint[i].Y)
 		}
 	case GeometryLineString:
 		for i := 0; i < len(g.LineString); i++ {
-			min[0] = math.Min(min[0], g.LineString[i][0])
-			min[1] = math.Min(min[1], g.LineString[i][1])
-			max[0] = math.Max(max[0], g.LineString[i][0])
-			max[1] = math.Max(max[1], g.LineString[i][1])
+			min[0] = math.Min(min[0], g.LineString[i].X)
+			min[1] = math.Min(min[1], g.LineString[i].Y)
+			max[0] = math.Max(max[0], g.LineString[i].X)
+			max[1] = math.Max(max[1], g.LineString[i].Y)
 		}
 	case GeometryMultiLineString:
 		for line := 0; line < len(g.MultiLineString); line++ {
 			linestring := g.MultiLineString[line]
 			for i := 0; i < len(linestring); i++ {
-				min[0] = math.Min(min[0], linestring[i][0])
-				min[1] = math.Min(min[1], linestring[i][1])
-				max[0] = math.Max(max[0], linestring[i][0])
-				max[1] = math.Max(max[1], linestring[i][1])
+				min[0] = math.Min(min[0], linestring[i].X)
+				min[1] = math.Min(min[1], linestring[i].Y)
+				max[0] = math.Max(max[0], linestring[i].X)
+				max[1] = math.Max(max[1], linestring[i].Y)
 			}
 		}
 	case GeometryPolygon:
 		for line := 0; line < len(g.Polygon); line++ {
 			linestring := g.Polygon[line]
 			for i := 0; i < len(linestring); i++ {
-				min[0] = math.Min(min[0], linestring[i][0])
-				min[1] = math.Min(min[1], linestring[i][1])
-				max[0] = math.Max(max[0], linestring[i][0])
-				max[1] = math.Max(max[1], linestring[i][1])
+				min[0] = math.Min(min[0], linestring[i].X)
+				min[1] = math.Min(min[1], linestring[i].Y)
+				max[0] = math.Max(max[0], linestring[i].X)
+				max[1] = math.Max(max[1], linestring[i].Y)
 			}
 		}
 	case GeometryMultiPolygon:
@@ -95,10 +95,10 @@ func (g *Geometry) GetBoundingBox() (min, max [2]float64, ok bool) {
 			for line := 0; line < len(g.MultiPolygon[poly]); line++ {
 				linestring := g.MultiPolygon[poly][line]
 				for i := 0; i < len(linestring); i++ {
-					min[0] = math.Min(min[0], linestring[i][0])
-					min[1] = math.Min(min[1], linestring[i][1])
-					max[0] = math.Max(max[0], linestring[i][0])
-					max[1] = math.Max(max[1], linestring[i][1])
+					min[0] = math.Min(min[0], linestring[i].X)
+					min[1] = math.Min(min[1], linestring[i].Y)
+					max[0] = math.Max(max[0], linestring[i].X)
+					max[1] = math.Max(max[1], linestring[i].Y)
 				}
 			}
 		}

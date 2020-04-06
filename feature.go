@@ -24,32 +24,32 @@ func NewFeature(geometry *Geometry) *Feature {
 }
 
 // NewPointFeature creates and initializes a GeoJSON feature with a point geometry using the given coordinate.
-func NewPointFeature(coordinate []float64) *Feature {
+func NewPointFeature(coordinate PointT) *Feature {
 	return NewFeature(NewPointGeometry(coordinate))
 }
 
 // NewMultiPointFeature creates and initializes a GeoJSON feature with a multi-point geometry using the given coordinates.
-func NewMultiPointFeature(coordinates ...[]float64) *Feature {
+func NewMultiPointFeature(coordinates ...PointT) *Feature {
 	return NewFeature(NewMultiPointGeometry(coordinates...))
 }
 
 // NewLineStringFeature creates and initializes a GeoJSON feature with a line string geometry using the given coordinates.
-func NewLineStringFeature(coordinates [][]float64) *Feature {
+func NewLineStringFeature(coordinates []PointT) *Feature {
 	return NewFeature(NewLineStringGeometry(coordinates))
 }
 
 // NewMultiLineStringFeature creates and initializes a GeoJSON feature with a multi-line string geometry using the given lines.
-func NewMultiLineStringFeature(lines ...[][]float64) *Feature {
+func NewMultiLineStringFeature(lines ...[]PointT) *Feature {
 	return NewFeature(NewMultiLineStringGeometry(lines...))
 }
 
 // NewPolygonFeature creates and initializes a GeoJSON feature with a polygon geometry using the given polygon.
-func NewPolygonFeature(polygon [][][]float64) *Feature {
+func NewPolygonFeature(polygon [][]PointT) *Feature {
 	return NewFeature(NewPolygonGeometry(polygon))
 }
 
 // NewMultiPolygonFeature creates and initializes a GeoJSON feature with a multi-polygon geometry using the given polygons.
-func NewMultiPolygonFeature(polygons ...[][][]float64) *Feature {
+func NewMultiPolygonFeature(polygons ...[][]PointT) *Feature {
 	return NewFeature(NewMultiPolygonGeometry(polygons...))
 }
 

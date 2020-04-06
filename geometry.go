@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 )
 
 // A GeometryType serves to enumerate the different GeoJSON geometry types.
@@ -20,22 +21,28 @@ const (
 	GeometryCollection      GeometryType = "GeometryCollection"
 )
 
+// PointT 一个点数据定义
+type PointT struct {
+	X float64
+	Y float64
+}
+
 // A Geometry correlates to a GeoJSON geometry object.
 type Geometry struct {
 	Type            GeometryType `json:"type"`
 	BoundingBox     []float64    `json:"bbox,omitempty"`
-	Point           []float64
-	MultiPoint      [][]float64
-	LineString      [][]float64
-	MultiLineString [][][]float64
-	Polygon         [][][]float64
-	MultiPolygon    [][][][]float64
+	Point           PointT
+	MultiPoint      []PointT
+	LineString      []PointT
+	MultiLineString [][]PointT
+	Polygon         [][]PointT
+	MultiPolygon    [][][]PointT
 	Geometries      []*Geometry
 	CRS             map[string]interface{} `json:"crs,omitempty"` // Coordinate Reference System Objects are not currently supported
 }
 
 // NewPointGeometry creates and initializes a point geometry with the give coordinate.
-func NewPointGeometry(coordinate []float64) *Geometry {
+func NewPointGeometry(coordinate PointT) *Geometry {
 	return &Geometry{
 		Type:  GeometryPoint,
 		Point: coordinate,
@@ -43,7 +50,7 @@ func NewPointGeometry(coordinate []float64) *Geometry {
 }
 
 // NewMultiPointGeometry creates and initializes a multi-point geometry with the given coordinates.
-func NewMultiPointGeometry(coordinates ...[]float64) *Geometry {
+func NewMultiPointGeometry(coordinates ...PointT) *Geometry {
 	return &Geometry{
 		Type:       GeometryMultiPoint,
 		MultiPoint: coordinates,
@@ -51,7 +58,7 @@ func NewMultiPointGeometry(coordinates ...[]float64) *Geometry {
 }
 
 // NewLineStringGeometry creates and initializes a line string geometry with the given coordinates.
-func NewLineStringGeometry(coordinates [][]float64) *Geometry {
+func NewLineStringGeometry(coordinates []PointT) *Geometry {
 	return &Geometry{
 		Type:       GeometryLineString,
 		LineString: coordinates,
@@ -59,7 +66,7 @@ func NewLineStringGeometry(coordinates [][]float64) *Geometry {
 }
 
 // NewMultiLineStringGeometry creates and initializes a multi-line string geometry with the given lines.
-func NewMultiLineStringGeometry(lines ...[][]float64) *Geometry {
+func NewMultiLineStringGeometry(lines ...[]PointT) *Geometry {
 	return &Geometry{
 		Type:            GeometryMultiLineString,
 		MultiLineString: lines,
@@ -67,7 +74,7 @@ func NewMultiLineStringGeometry(lines ...[][]float64) *Geometry {
 }
 
 // NewPolygonGeometry creates and initializes a polygon geometry with the given polygon.
-func NewPolygonGeometry(polygon [][][]float64) *Geometry {
+func NewPolygonGeometry(polygon [][]PointT) *Geometry {
 	return &Geometry{
 		Type:    GeometryPolygon,
 		Polygon: polygon,
@@ -75,7 +82,7 @@ func NewPolygonGeometry(polygon [][][]float64) *Geometry {
 }
 
 // NewMultiPolygonGeometry creates and initializes a multi-polygon geometry with the given polygons.
-func NewMultiPolygonGeometry(polygons ...[][][]float64) *Geometry {
+func NewMultiPolygonGeometry(polygons ...[][]PointT) *Geometry {
 	return &Geometry{
 		Type:         GeometryMultiPolygon,
 		MultiPolygon: polygons,
@@ -88,6 +95,17 @@ func NewCollectionGeometry(geometries ...*Geometry) *Geometry {
 		Type:       GeometryCollection,
 		Geometries: geometries,
 	}
+}
+
+// MarshalJSON converts the PointT object into the correct JSON.
+func (pt PointT) MarshalJSON() ([]byte, error) {
+	result := make([]byte, 1, 128)
+	result[0] = '['
+	result = strconv.AppendFloat(result, pt.X, 'E', -1, 64)
+	result = append(result, ',')
+	result = strconv.AppendFloat(result, pt.Y, 'E', -1, 64)
+	result = append(result, ']')
+	return result, nil
 }
 
 // MarshalJSON converts the geometry object into the correct JSON.
@@ -211,31 +229,25 @@ func decodeGeometry(g *Geometry, object map[string]interface{}) error {
 	return err
 }
 
-func decodePosition(data interface{}) ([]float64, error) {
+func decodePosition(data interface{}) (PointT, error) {
 	coords, ok := data.([]interface{})
 	if !ok {
-		return nil, fmt.Errorf("not a valid position, got %v", data)
+		return PointT{0, 0}, fmt.Errorf("not a valid position, got %v", data)
 	}
 
-	result := make([]float64, 0, len(coords))
-	for _, coord := range coords {
-		if f, ok := coord.(float64); ok {
-			result = append(result, f)
-		} else {
-			return nil, fmt.Errorf("not a valid coordinate, got %v", coord)
-		}
-	}
-
-	return result, nil
+	return PointT{
+		X: coords[0].(float64),
+		Y: coords[1].(float64),
+	}, nil
 }
 
-func decodePositionSet(data interface{}) ([][]float64, error) {
+func decodePositionSet(data interface{}) ([]PointT, error) {
 	points, ok := data.([]interface{})
 	if !ok {
 		return nil, fmt.Errorf("not a valid set of positions, got %v", data)
 	}
 
-	result := make([][]float64, 0, len(points))
+	result := make([]PointT, 0, len(points))
 	for _, point := range points {
 		if p, err := decodePosition(point); err == nil {
 			result = append(result, p)
@@ -247,13 +259,13 @@ func decodePositionSet(data interface{}) ([][]float64, error) {
 	return result, nil
 }
 
-func decodePathSet(data interface{}) ([][][]float64, error) {
+func decodePathSet(data interface{}) ([][]PointT, error) {
 	sets, ok := data.([]interface{})
 	if !ok {
 		return nil, fmt.Errorf("not a valid path, got %v", data)
 	}
 
-	result := make([][][]float64, 0, len(sets))
+	result := make([][]PointT, 0, len(sets))
 
 	for _, set := range sets {
 		if s, err := decodePositionSet(set); err == nil {
@@ -266,13 +278,13 @@ func decodePathSet(data interface{}) ([][][]float64, error) {
 	return result, nil
 }
 
-func decodePolygonSet(data interface{}) ([][][][]float64, error) {
+func decodePolygonSet(data interface{}) ([][][]PointT, error) {
 	polygons, ok := data.([]interface{})
 	if !ok {
 		return nil, fmt.Errorf("not a valid polygon, got %v", data)
 	}
 
-	result := make([][][][]float64, 0, len(polygons))
+	result := make([][][]PointT, 0, len(polygons))
 	for _, polygon := range polygons {
 		if p, err := decodePathSet(polygon); err == nil {
 			result = append(result, p)
